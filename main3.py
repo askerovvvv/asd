@@ -22,60 +22,53 @@ class SaveService(CrudService):
 
 
 class Group(CrudService):
-    group_list = ['MAR-20', 'Sca-20', 'Des-20']
+    group_ = []
     
-    @classmethod
-    def add(cls, new_group):
-        cls.group_list.append(new_group)
+    def __init__(self):
+        self.group_list = {}
+        
+    
+    def add(self, new_group, faculty):
+        self.group_list = {'Group': new_group, 'faculty': faculty}
+        Group.group_.append(self.group_list)
+
+    
+    def get(self):
+        return self.group_list
 
     @classmethod
-    def get(cls):
-        return cls.group_list
-
-    @classmethod
-    def remove(cls, element):
-        cls.group_list.remove(element)
+    def remove(cls, id):
+        cls.group_.pop(id)
 
     @classmethod
     def get_by_id(cls, id):
-        return cls.group_list[id]
-
-aco = Group()
-aco.add('Aco-20')
-csc = Group()
-csc.add('Csc-20')
-
-print(csc.get())
+        return cls.group_[id]
+        
 
 
-class Student(Group, AddGet):
+class ITGroup(Group):
+    def __init__(self):
+        self.group_list = {}
+
+
+class Student(AddGet):
     def __init__(self, name, age, gender):
-        super().__init__()
         Student.student_groups = {}
         self.name = name
         self.age = age
         self.gender = gender
 
     def add(self, group,):
-        if not group in self.group_list:
-            raise Exception('No such group exists!')
-        Student.student_groups[group] = self.name
+        for i in Group.group_:
+            if group in i.values():
+                Student.student_groups[group] = self.name
+    
+            # else:
+            #     raise Exception('No such group exists!', group)
     
     @classmethod
     def get(cls):
         return cls.student_groups
-
-
-std1 = Student('Tom', 18, 'male')
-std2 = Student('Gerald', 18, 'male')
-std3 = Student('John', 19, 'female')
-std4 = Student('Kane', 19, 'female')
-
-std1.add('Sca-20')
-std2.add('Des-20')
-std3.add('MAR-20')
-
-print(std2.get())
 
 
 class Save(SaveService):
@@ -84,8 +77,6 @@ class Save(SaveService):
             writer = csv.writer(file, delimiter=",")
             writer.writerow((data[group])) 
 
-saver = Save()
-saver.save(Student.get(), 'Sca-20')
 
 class Specification:
     def is_satisfied(self, student):
@@ -115,13 +106,40 @@ class FilterStudent(Filter):
             if spec.is_satisfied(student):
                 yield student
         
-# std1 = Student('Tom', 18, 'male')
-# std2 = Student('Gerald', 18, 'male')
-# std3 = Student('John', 19, 'female')
-# students = [std1, std2, std3]
 
-# male = GenderSpecification('male')
-# fs = FilterStudent()
-# for p in fs.filter(students, male):
-#     print(p.name)
+def controller():
+    aco = Group()
+    csc = Group()
+    it = ITGroup()
+
+    it.add('Sca-20', 'IT')
+    aco.add('Aco-20', 'economy')
+    csc.add('Csc-20', 'IT')
+    csc.remove(1)
+
+    print(csc.get_by_id(0))
+    print(it.get())
+    print(Group.group_)
+
+
+    std1 = Student('Tom', 18, 'male')
+    std2 = Student('Gerald', 18, 'male')
+    std3 = Student('John', 19, 'female')
+    std4 = Student('Kane', 19, 'female')
+
+    std1.add('Sca-20')
+    std2.add('Aco-20')
+    std3.add('MAR-20')
+    students = [std1, std2, std3]
+    print(Student.get())
+
+    saver = Save()
+    saver.save(Student.get(), 'Sca-20')
+
+    male = GenderSpecification('male')
+    fs = FilterStudent()
+    for p in fs.filter(students, male):
+        print(p.name)
+
+controller()
 
